@@ -64,6 +64,150 @@ endingLine.textContent = "Pwede napo ta bati? ❤";
 
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+const fxCanvas = el("fxCanvas");
+const fx = fxCanvas.getContext("2d");
+
+let fxOn = false;
+let particles = [];
+let rockets = [];
+let rafId = null;
+
+function resizeFX() {
+    const dpr = Math.max(1, window.devicePixelRatio || 1);
+    fxCanvas.width = Math.floor(window.innerWidth * dpr);
+    fxCanvas.height = Math.floor(window.innerHeight * dpr);
+    fx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+window.addEventListener("resize", resizeFX);
+resizeFX();
+
+function rand(a, b) { return a + Math.random() * (b - a); }
+
+function launchRocket(x, yTarget) {
+    rockets.push({
+        x, y: window.innerHeight + 10,
+        vx: rand(-0.6, 0.6),
+        vy: rand(-11.5, -9.8),
+        yTarget,
+        exploded: false
+    });
+}
+
+function explode(x, y, count = 90) {
+    for (let i = 0; i < count; i++) {
+        const ang = Math.random() * Math.PI * 2;
+        const sp = rand(2.2, 6.4);
+        particles.push({
+            x, y,
+            vx: Math.cos(ang) * sp,
+            vy: Math.sin(ang) * sp,
+            life: rand(50, 90),
+            age: 0
+        });
+    }
+}
+
+function drawTextGlow(text) {
+    fx.save();
+    fx.globalAlpha = 0.9;
+    fx.font = "800 56px ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial";
+    fx.textAlign = "center";
+    fx.textBaseline = "middle";
+
+    const x = window.innerWidth / 2;
+    const y = window.innerHeight * 0.18;
+
+    fx.shadowBlur = 22;
+    fx.shadowColor = "rgba(255,255,255,.55)";
+    fx.fillStyle = "rgba(255,255,255,.92)";
+    fx.fillText(text, x, y);
+
+    fx.shadowBlur = 0;
+    fx.globalAlpha = 1;
+    fx.restore();
+}
+
+function step() {
+    fx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+
+    // rockets
+    for (let i = rockets.length - 1; i >= 0; i--) {
+        const r = rockets[i];
+        r.x += r.vx;
+        r.y += r.vy;
+        r.vy += 0.18;
+
+        // trail dot
+        fx.globalAlpha = 0.7;
+        fx.beginPath();
+        fx.arc(r.x, r.y, 2.2, 0, Math.PI * 2);
+        fx.fillStyle = "rgba(255,255,255,.85)";
+        fx.fill();
+
+        if (!r.exploded && r.y <= r.yTarget) {
+            r.exploded = true;
+            explode(r.x, r.y, 110);
+            rockets.splice(i, 1);
+        }
+    }
+
+    // particles
+    for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += 0.06;
+        p.vx *= 0.985;
+
+        p.age += 1;
+        const t = p.age / p.life;
+        const alpha = Math.max(0, 1 - t);
+
+        fx.globalAlpha = alpha;
+        fx.beginPath();
+        fx.arc(p.x, p.y, 2.2, 0, Math.PI * 2);
+        fx.fillStyle = "rgba(255,255,255,.92)";
+        fx.fill();
+
+        if (p.age >= p.life) particles.splice(i, 1);
+    }
+
+    // message while running
+    if (fxOn) drawTextGlow("SORRY BB 🥺");
+
+    // stop when done
+    if (fxOn && rockets.length === 0 && particles.length === 0) {
+        fxOn = false;
+        fxCanvas.classList.remove("show");
+        cancelAnimationFrame(rafId);
+        rafId = null;
+        return;
+    }
+
+    rafId = requestAnimationFrame(step);
+}
+
+function startFireworks() {
+    if (rafId) return;
+
+    fxOn = true;
+    fxCanvas.classList.add("show");
+
+
+    const w = window.innerWidth;
+    launchRocket(w * 0.22, window.innerHeight * 0.35);
+    launchRocket(w * 0.42, window.innerHeight * 0.28);
+    launchRocket(w * 0.62, window.innerHeight * 0.33);
+    launchRocket(w * 0.80, window.innerHeight * 0.25);
+
+    setTimeout(() => {
+        if (!fxOn) return;
+        launchRocket(w * 0.30, window.innerHeight * 0.22);
+        launchRocket(w * 0.70, window.innerHeight * 0.22);
+    }, 260);
+
+    rafId = requestAnimationFrame(step);
+}
 
 function ripple(e) {
     const btn = e.currentTarget;
@@ -380,6 +524,7 @@ forgiveBtn.addEventListener("click", () => {
     showToast("Thank you… I’ll do better. ❤");
     const r = forgiveBtn.getBoundingClientRect();
     burstHearts(r.left + r.width / 2, r.top + r.height / 2, 14);
+
 });
 
 hugBtn.addEventListener("click", () => {
