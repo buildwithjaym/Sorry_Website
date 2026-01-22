@@ -23,6 +23,7 @@ const CONFIG = {
 
 const el = (id) => document.getElementById(id);
 
+
 const typedEl = el("typed");
 const siteNameEl = el("siteName");
 const dearLine = el("dearLine");
@@ -50,34 +51,19 @@ const downloadReceiptBtn = el("downloadReceiptBtn");
 const clearReceiptBtn = el("clearReceiptBtn");
 const receiptCanvas = el("receiptCanvas");
 
+
 let muted = false;
 let selected = null;
+let audioUnlocked = false;
+let lastFocusEl = null;
+
 
 siteNameEl.textContent = CONFIG.siteName;
 dearLine.textContent = `Hello ${CONFIG.herName},`;
 endingLine.textContent = "Pwede napo ta bati? ❤";
 
-function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
-async function typewriter(lines, target) {
-    target.textContent = "";
-    for (let i = 0; i < lines.length; i++) {
-        const line = lines[i];
-        for (let j = 0; j <= line.length; j++) {
-            target.textContent = line.slice(0, j);
-            if (!muted) tick();
-            await sleep(22 + Math.random() * 22);
-        }
-        await sleep(650);
-        if (i !== lines.length - 1) {
-            for (let k = line.length; k >= 0; k--) {
-                target.textContent = line.slice(0, k);
-                await sleep(10);
-            }
-            await sleep(120);
-        }
-    }
-}
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
 function ripple(e) {
     const btn = e.currentTarget;
@@ -88,21 +74,6 @@ function ripple(e) {
     r.style.top = (e.clientY - rect.top) + "px";
     btn.appendChild(r);
     setTimeout(() => r.remove(), 650);
-}
-
-function showModal() {
-    overlay.classList.add("show");
-    modal.classList.add("show");
-    overlay.setAttribute("aria-hidden", "false");
-    modal.setAttribute("aria-hidden", "false");
-    if (!muted) pop();
-}
-
-function hideModal() {
-    overlay.classList.remove("show");
-    modal.classList.remove("show");
-    overlay.setAttribute("aria-hidden", "true");
-    modal.setAttribute("aria-hidden", "true");
 }
 
 function showToast(msg) {
@@ -127,7 +98,7 @@ function burstHearts(centerX, centerY, count = 10) {
         const dy = (Math.random() * 20 - 10);
         spawnHeart(centerX + dx, centerY + dy);
     }
-    if (!muted) chime();
+    chime();
 }
 
 function bindButtonFX(button) {
@@ -137,19 +108,44 @@ function bindButtonFX(button) {
         const r = button.getBoundingClientRect();
         const px = (e.clientX - r.left) / r.width;
         const py = (e.clientY - r.top) / r.height;
-        button.style.transform = `translateY(-1px) rotateX(${(py - .5) * 6}deg) rotateY(${(px - .5) * -6}deg)`;
+        button.style.transform =
+            `translateY(-1px) rotateX(${(py - .5) * 6}deg) rotateY(${(px - .5) * -6}deg)`;
     });
     button.addEventListener("mouseleave", () => {
         button.style.transform = "";
     });
 }
 
+
 function audioCtx() {
     if (!window.__ac) window.__ac = new (window.AudioContext || window.webkitAudioContext)();
     return window.__ac;
 }
 
+function unlockAudio() {
+    if (audioUnlocked || muted) return;
+    try {
+        const ac = audioCtx();
+        if (ac.state === "suspended") ac.resume();
+
+        const o = ac.createOscillator();
+        const g = ac.createGain();
+        g.gain.value = 0.00001;
+        o.connect(g);
+        g.connect(ac.destination);
+        o.start();
+        o.stop(ac.currentTime + 0.01);
+
+        audioUnlocked = true;
+    } catch (_) { }
+}
+
+["pointerdown", "keydown", "touchstart"].forEach(evt => {
+    window.addEventListener(evt, unlockAudio, { once: true });
+});
+
 function tone(freq, dur = 0.04, type = "sine", gain = 0.04) {
+    if (muted || !audioUnlocked) return;
     const ac = audioCtx();
     const o = ac.createOscillator();
     const g = ac.createGain();
@@ -165,6 +161,7 @@ function tone(freq, dur = 0.04, type = "sine", gain = 0.04) {
 function tick() { tone(880, 0.015, "triangle", 0.02); }
 function pop() { tone(520, 0.05, "sine", 0.03); }
 function chime() {
+    if (muted || !audioUnlocked) return;
     tone(659, 0.05, "sine", 0.03);
     setTimeout(() => tone(784, 0.06, "sine", 0.03), 60);
     setTimeout(() => tone(988, 0.07, "sine", 0.03), 130);
@@ -176,12 +173,60 @@ function toggleMute() {
     if (!muted) pop();
 }
 
+
+async function typewriter(lines, target) {
+    target.textContent = "";
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        for (let j = 0; j <= line.length; j++) {
+            target.textContent = line.slice(0, j);
+            tick(); // will only play after unlock
+            await sleep(22 + Math.random() * 22);
+        }
+        await sleep(650);
+        if (i !== lines.length - 1) {
+            for (let k = line.length; k >= 0; k--) {
+                target.textContent = line.slice(0, k);
+                await sleep(10);
+            }
+            await sleep(120);
+        }
+    }
+}
+
+
+function showModal() {
+    lastFocusEl = document.activeElement;
+
+    overlay.classList.add("show");
+    modal.classList.add("show");
+
+    overlay.setAttribute("aria-hidden", "false");
+    modal.setAttribute("aria-hidden", "false");
+
+    setTimeout(() => closeBtn && closeBtn.focus(), 0);
+    pop();
+}
+
+function hideModal() {
+    overlay.classList.remove("show");
+    modal.classList.remove("show");
+
+    overlay.setAttribute("aria-hidden", "true");
+    modal.setAttribute("aria-hidden", "true");
+
+    setTimeout(() => {
+        if (lastFocusEl && typeof lastFocusEl.focus === "function") lastFocusEl.focus();
+        else if (openBtn) openBtn.focus();
+    }, 0);
+}
+
+
 function fmtTime(ts) {
     const d = new Date(ts);
     return d.toLocaleString([], { weekday: "short", month: "short", day: "2-digit", hour: "2-digit", minute: "2-digit" });
 }
 
-/* ---- Picker + Receipt ---- */
 function buildPicker() {
     picker.innerHTML = "";
     CONFIG.dateIdeas.forEach((idea) => {
@@ -201,7 +246,7 @@ function buildPicker() {
 function openPicker() {
     picker.classList.add("show");
     picker.setAttribute("aria-hidden", "false");
-    if (!muted) pop();
+    pop();
 }
 
 function closePicker() {
@@ -225,12 +270,14 @@ function chooseIdea(idea) {
     dateIdea.classList.add("pop");
 
     updateReceiptUI(selected);
+
     receiptCard.classList.add("show", "receiptStamp");
     receiptCard.setAttribute("aria-hidden", "false");
     setTimeout(() => receiptCard.classList.remove("receiptStamp"), 600);
 
     downloadReceiptBtn.disabled = false;
-    if (!muted) chime();
+
+    chime();
     showToast("Naka save na siya ✨");
 }
 
@@ -323,7 +370,7 @@ function drawReceiptPNG(data) {
     return receiptCanvas.toDataURL("image/png");
 }
 
-/* ---- Events ---- */
+
 openBtn.addEventListener("click", showModal);
 closeBtn.addEventListener("click", hideModal);
 overlay.addEventListener("click", hideModal);
@@ -358,7 +405,7 @@ downloadReceiptBtn.addEventListener("click", () => {
     document.body.appendChild(a);
     a.click();
     a.remove();
-    if (!muted) chime();
+    chime();
     showToast("Receipt downloaded 💾");
 });
 
@@ -369,7 +416,7 @@ clearReceiptBtn.addEventListener("click", () => {
     receiptCard.setAttribute("aria-hidden", "true");
     dateIdea.textContent = "Tap to pick a cute plan ✨";
     downloadReceiptBtn.disabled = true;
-    if (!muted) pop();
+    pop();
     showToast("Cleared.");
 });
 
@@ -377,7 +424,6 @@ muteBtn.addEventListener("click", toggleMute);
 
 [openBtn, closeBtn, forgiveBtn, hugBtn, heartsBtn, planBtn, muteBtn, downloadReceiptBtn, clearReceiptBtn]
     .forEach(bindButtonFX);
-
 
 document.addEventListener("click", (e) => {
     if (Math.random() < 0.08) spawnHeart(e.clientX, e.clientY);
