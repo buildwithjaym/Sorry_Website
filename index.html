@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>I'm Sorry</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <div class="bg">
+    <div class="blob b1"></div>
+    <div class="blob b2"></div>
+    <div class="blob b3"></div>
+    <div class="grain"></div>
+  </div>
+
+  <header class="topbar">
+    <div class="brand">
+      <span class="dot"></span>
+      <span id="siteName">My Sorry Website</span>
+    </div>
+    <button class="chip" id="muteBtn" aria-label="Toggle sound">
+      <span class="chipIcon">♪</span>
+      <span class="chipText">Sound: On</span>
+    </button>
+  </header>
+
+  <main class="wrap">
+    <section class="hero">
+      <div class="heroCard card">
+        <div class="sparkle" aria-hidden="true"></div>
+
+        <p class="kicker">A small page, with a big heart</p>
+
+        <h1 class="title">
+          <span id="typed"></span><span class="caret" aria-hidden="true">▍</span>
+        </h1>
+
+        <p class="sub" id="subtitle">
+          I’ve been busy lately, and I’m sorry I couldn’t call. You matter to me more than my schedule.
+        </p>
+
+        <div class="actions">
+          <button class="btn primary" id="openBtn">
+            <span class="btnText">Open my message</span>
+            <span class="btnIcon" aria-hidden="true">→</span>
+          </button>
+
+          <button class="btn ghost" id="heartsBtn">
+            <span class="btnText">Send hearts</span>
+            <span class="btnIcon" aria-hidden="true">❤</span>
+          </button>
+        </div>
+
+        <div class="miniCards">
+          <div class="mini card hoverLift">
+            <h3>Hear me out</h3>
+            <p>It's not about that I dont want to.</p>
+          </div>
+          <div class="mini card hoverLift">
+            <h3>Baby</h3>
+            <p>I always miss your cutie baby voice bb.</p>
+          </div>
+          <div class="mini card hoverLift">
+            <h3>Us</h3>
+            <p>I want to fix it po huhu.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="promise">
+      <div class="promiseCard card">
+        <h2>What I’m promising</h2>
+        <div class="promiseGrid">
+          <div class="promiseItem hoverLift">
+            <div class="badge">1</div>
+            <div>
+              <h3>Better communication</h3>
+              <p>If I'm busy I will try my best to update you po</p>
+            </div>
+          </div>
+          <div class="promiseItem hoverLift">
+            <div class="badge">2</div>
+            <div>
+              <h3>Late night talks</h3>
+              <p>Even a quick message to say “I’m here.”</p>
+            </div>
+          </div>
+          <div class="promiseItem hoverLift">
+            <div class="badge">3</div>
+            <div>
+              <h3>Quality time soon</h3>
+              <p>A date we plan intentionally.</p>
+            </div>
+          </div>
+        </div>
+
+       <div class="ctaRow">
+  <button class="btn secondary" id="planBtn">
+    <span class="btnText">Pick a date idea</span>
+    <span class="btnIcon" aria-hidden="true">✦</span>
+  </button>
+
+  <div class="pill" id="dateIdea" aria-live="polite">
+    Tap to pick a cute plan ✨
+  </div>
+</div>
+
+<div class="picker" id="picker" aria-hidden="true"></div>
+
+<div class="receipt card" id="receiptCard" aria-hidden="true">
+  <div class="receiptTop">
+    <div class="receiptTitle">Date Receipt</div>
+    <div class="receiptMeta" id="receiptMeta"></div>
+  </div>
+
+  <div class="receiptBody">
+    <div class="receiptLine">
+      <span class="label">Picked:</span>
+      <span class="value" id="receiptIdea">—</span>
+    </div>
+    <div class="receiptLine">
+      <span class="label">Saved:</span>
+      <span class="value" id="receiptSaved">—</span>
+    </div>
+  </div>
+
+  <div class="receiptActions">
+    <button class="btn ghost" id="downloadReceiptBtn" disabled>
+      <span class="btnText">Download receipt</span>
+      <span class="btnIcon" aria-hidden="true">⤓</span>
+    </button>
+
+    <button class="btn ghost" id="clearReceiptBtn">
+      <span class="btnText">Clear</span>
+      <span class="btnIcon" aria-hidden="true">↺</span>
+    </button>
+  </div>
+
+  <canvas id="receiptCanvas" width="1200" height="700" class="srOnly"></canvas>
+</div>
+
+      </div>
+    </section>
+  </main>
+
+  <div class="overlay" id="overlay" aria-hidden="true"></div>
+
+  <section class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" aria-hidden="true">
+    <div class="modalCard card">
+      <button class="xBtn" id="closeBtn" aria-label="Close">✕</button>
+
+      <h2 id="modalTitle">My message</h2>
+
+      <div class="letter">
+        <p class="dear" id="dearLine">Hey love,</p>
+        <p id="letterBody">
+          I’m really sorry I couldn’t call. Life has been heavy and busy, and I handled it poorly by not communicating better.
+          You didn’t deserve the silence.
+        </p>
+        <p>
+          I care about you deeply. Even when I’m overwhelmed, I still choose you and I’m learning to show that more consistently.
+        </p>
+        <p class="ending" id="endingLine">
+          Can we reset? I’ll make it up to you. ❤
+        </p>
+      </div>
+
+      <div class="modalActions">
+        <button class="btn primary" id="forgiveBtn">
+          <span class="btnText">Tap if you forgive me</span>
+          <span class="btnIcon" aria-hidden="true">☺</span>
+        </button>
+
+        <button class="btn ghost" id="hugBtn">
+          <span class="btnText">Virtual hug</span>
+          <span class="btnIcon" aria-hidden="true">🤍</span>
+        </button>
+      </div>
+
+      <div class="toast" id="toast" aria-live="polite" aria-atomic="true"></div>
+    </div>
+  </section>
+
+  <script src="js/main.js"></script>
+</body>
+</html>
